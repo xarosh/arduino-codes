@@ -1,0 +1,59 @@
+#include<TimerOne.h>
+int readyled=3,stopled=4;
+int pulseval,pulseSum,pulseSred,pulseSredTHold,pulseBeatTHold,pulseBeatTHold2,p=0,p1=0,p2=0,pulseBeats=0;
+int safe=0;
+int pulseSredBeats;
+void setup() {
+pinMode(readyled,OUTPUT);
+pinMode(stopled,OUTPUT);
+Serial.begin(115200);
+Timer1.initialize();
+Timer1.attachInterrupt(Timer_pulse);
+}
+
+void Timer_pulse(){
+  if(p1>5){
+    p++;
+    p2++;
+  }
+  p1++;
+  pulseSum=pulseSum+pulseval;
+  if(p1==5){
+    pulseSred=pulseSum/5;
+    pulseSredTHold=pulseSred*1.2;
+  }
+  if(p2==5){
+    pulseSredBeats=pulseSredBeats+pulseBeats;
+  }
+  if(p==5){
+    if(pulseBeats>pulseBeatTHold||pulseBeats<pulseBeatTHold2){
+      digitalWrite(stopled,HIGH);
+      digitalWrite(readyled,LOW);
+    }else if(pulseBeats<pulseBeatTHold||pulseBeats>pulseBeatTHold2){
+      digitalWrite(stopled,LOW);
+      digitalWrite(readyled,HIGH);
+    }
+    pulseBeatTHold=pulseSredBeats*1.4;
+    pulseBeatTHold2=pulseSredBeats*0.6;
+    Serial.print("Среднее значение пульса: ");
+    Serial.print(pulseSredBeats);
+    Serial.print("Среднее количество пиков: ");
+    Serial.print(pulseBeats);
+    Serial.print("/");
+    Serial.print(pulseBeatTHold);
+    Serial.print("//");
+    Serial.println(pulseBeatTHold2);
+ 
+    p=0;
+    pulseBeats=0;
+  }
+}
+
+void loop() {
+pulseval=analogRead(A1);
+pulseval=map(pulseval,0,1023,0,255);
+if(pulseval>pulseSredTHold&&p1>5){
+  pulseBeats++;
+}
+delay(4);
+}
